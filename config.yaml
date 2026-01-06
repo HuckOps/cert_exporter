@@ -1,0 +1,8 @@
+log_level: debug
+interval: 60
+remote:
+  - cg.163.com:443
+  - auth.huckops.xyz:443
+
+local: 
+  - public_key_path: fullchain.cer
