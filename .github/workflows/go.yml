@@ -1,0 +1,55 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' 
+
+permissions:
+  contents: write
+
+env:
+  PROJECT_NAME: cert_exporter
+  
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+
+      - name: Run Tests
+        run: go test ./...
+
+      - name: Build and Package via Makefile (with dynamic version)
+        run: |
+          if [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            DYNAMIC_VERSION="${GITHUB_REF_NAME#v}"
+          else
+            DYNAMIC_VERSION="0.1.0"
+          fi
+          
+          echo "Building version: ${DYNAMIC_VERSION}"
+          echo "Git Revision: $(git rev-parse --short HEAD)"
+          
+          make package VERSION=${DYNAMIC_VERSION}
+        env:
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: List Package Artifacts
+        run: ls -la ./package/
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./package/*.tar.gz
+          generate_release_notes: true
