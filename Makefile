@@ -11,15 +11,23 @@ GO := go
 GOOSs := linux darwin windows
 GOARCHs := amd64 arm64
 
+# Version information
+VERSION := 0.1.0
+REVISION := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
+
+# Build flags with version information
+BUILD_FLAGS := -ldflags "-X main.version=$(VERSION) -X main.revision=$(REVISION) -X main.buildDate=$(BUILD_DATE)"
+
 # Default build target (local environment)
 build:
 	@echo "Building $(PROJECT_NAME) for local environment..."
 	@mkdir -p $(BUILD_DIR)
 	@if [ "$(GOOS)" = "windows" ]; then \
-		$(GO) build -o $(BUILD_DIR)/$(PROJECT_NAME).exe .; \
+		GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(BUILD_FLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME).exe .; \
 		echo "Build completed: $(BUILD_DIR)/$(PROJECT_NAME).exe"; \
 	else \
-		$(GO) build -o $(BUILD_DIR)/$(PROJECT_NAME) .; \
+		GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(BUILD_FLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME) .; \
 		echo "Build completed: $(BUILD_DIR)/$(PROJECT_NAME)"; \
 	fi
 
@@ -31,10 +39,10 @@ build-all:
 			echo "Building $(PROJECT_NAME) for $$GOOS/$$GOARCH..."; \
 			mkdir -p $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/; \
 			if [ "$$GOOS" = "windows" ]; then \
-				GOOS=$$GOOS GOARCH=$$GOARCH $(GO) build -o $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME).exe .; \
+				GOOS=$$GOOS GOARCH=$$GOARCH $(GO) build $(BUILD_FLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME).exe .; \
 				echo "Build completed: $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME).exe"; \
 			else \
-				GOOS=$$GOOS GOARCH=$$GOARCH $(GO) build -o $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME) .; \
+				GOOS=$$GOOS GOARCH=$$GOARCH $(GO) build $(BUILD_FLAGS) -o $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME) .; \
 				echo "Build completed: $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/$(PROJECT_NAME)"; \
 			fi; \
 			cp config.yaml $(BUILD_DIR)/$(PROJECT_NAME)-$$GOOS-$$GOARCH/; \
