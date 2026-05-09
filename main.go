@@ -54,7 +54,7 @@ func main() {
 	// 设置HTTP路由
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		_, err := w.Write([]byte(`<html>
 			<head><title>Certificate Exporter</title></head>
 			<body>
 				<h1>Certificate Exporter</h1>
@@ -62,6 +62,9 @@ func main() {
 				<p><a href='` + *metricsPath + `'>Metrics</a></p>
 			</body>
 		</html>`))
+		if err != nil {
+			zap.L().Error("Error writing response", zap.Error(err))
+		}
 	})
 
 	zap.L().Info("Starting server", zap.String("addr", *listenAddr))

@@ -35,7 +35,11 @@ func CheckRemoteCertificate(remote string) (time.Duration, []CertificateInfo, er
 	if err != nil {
 		return 0, nil, err
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			zap.L().Error("Error closing connection", zap.Error(err))
+		}
+	}()
 	elapsed := time.Since(start)
 	// Get certificate
 	state := conn.ConnectionState()

@@ -22,7 +22,6 @@ type RemoteCacheEntry struct {
 
 type LocalCacheEntry struct {
 	certInfo utils.CertificateInfo
-	domain   string
 	err      error
 }
 
